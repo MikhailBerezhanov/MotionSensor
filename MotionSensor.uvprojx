@@ -52,7 +52,7 @@
           <OutputName>MotionSensor</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
-          <CreateHexFile>0</CreateHexFile>
+          <CreateHexFile>1</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
           <ListingPath>.\Listings\</ListingPath>
@@ -333,10 +333,10 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>-Inline</MiscControls>
               <Define>USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>.\LIB;.\madgwick_algorithm_C\MadgwickAHRS;.\madgwick_algorithm_C\MahonyAHRS;.\LIB\HC-05;.\LIB\RTC STM32F103;..\Project ONE;.\LIB\BMI160;.\LIB\BMM150-Sensor-API-master</IncludePath>
+              <IncludePath>.\LIB;.\LIB\madgwick_algorithm_C\MadgwickAHRS;.\LIB\madgwick_algorithm_C\MahonyAHRS;.\LIB\HC-05;.\LIB\RTC STM32F103;..\Project ONE;.\LIB\BMI160;.\LIB\BMM150-Sensor-API-master</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -425,6 +425,16 @@
               <FileType>5</FileType>
               <FilePath>.\IRQ_Handlers.h</FilePath>
             </File>
+            <File>
+              <FileName>Sensors_Func.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Sensors_Func.c</FilePath>
+            </File>
+            <File>
+              <FileName>Sensors_func.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Sensors_func.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -445,16 +455,6 @@
               <FileType>5</FileType>
               <FilePath>.\LIB\BMI160\bmi160_defs.h</FilePath>
             </File>
-            <File>
-              <FileName>BMI160_func.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\BMI160_func.c</FilePath>
-            </File>
-            <File>
-              <FileName>BMI160_func.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\BMI160_func.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -463,12 +463,12 @@
             <File>
               <FileName>MadgwickAHRS.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\madgwick_algorithm_C\MadgwickAHRS\MadgwickAHRS.c</FilePath>
+              <FilePath>.\LIB\madgwick_algorithm_C\MadgwickAHRS\MadgwickAHRS.c</FilePath>
             </File>
             <File>
               <FileName>MadgwickAHRS.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\madgwick_algorithm_C\MadgwickAHRS\MadgwickAHRS.h</FilePath>
+              <FilePath>.\LIB\madgwick_algorithm_C\MadgwickAHRS\MadgwickAHRS.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -542,6 +542,18 @@
         </targetInfos>
       </component>
       <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="1.0.0" condition="STM32F1xx CMSIS">
+        <package name="STM32F1xx_DFP" schemaVersion="1.4.0" url="http://www.keil.com/pack/" vendor="Keil" version="2.2.0"/>
+        <targetInfos>
+          <targetInfo name="MotionSensor"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Device" Cgroup="StdPeriph Drivers" Csub="BKP" Cvendor="Keil" Cversion="3.5.0" condition="STM32F1xx STDPERIPH">
+        <package name="STM32F1xx_DFP" schemaVersion="1.4.0" url="http://www.keil.com/pack/" vendor="Keil" version="2.2.0"/>
+        <targetInfos>
+          <targetInfo name="MotionSensor"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Device" Cgroup="StdPeriph Drivers" Csub="DMA" Cvendor="Keil" Cversion="3.5.0" condition="STM32F1xx STDPERIPH RCC">
         <package name="STM32F1xx_DFP" schemaVersion="1.4.0" url="http://www.keil.com/pack/" vendor="Keil" version="2.2.0"/>
         <targetInfos>
           <targetInfo name="MotionSensor"/>
