@@ -126,68 +126,7 @@ static int8_t write_op_mode(uint8_t op_mode, const struct bmm150_dev *dev);
  */
 static int8_t suspend_to_sleep_mode(struct bmm150_dev *dev);
 
-/*!
- * @brief This internal API sets the xy repetition value in the 0x51 register.
- *
- * @param[in,out] dev      : Structure instance of bmm150_dev
- *
- *  dev->settings.xy_rep    |  nXY(XY Repetitions)
- * -------------------------|-----------------------
- *   0x00                   |   1
- *   0x01                   |   3
- *   0x02                   |   5
- *    .                     |   .
- *    .                     |   .
- *   0xFF                   |   511
- *
- * @note number of XY Repetitions nXY  = 1+2(dev->settings.xy_rep)
- *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error.
- */
-static int8_t set_xy_rep(const struct bmm150_dev *dev);
 
-/*!
- * @brief This internal API sets the z repetition value in the 0x52 register.
- *
- * @param[in,out] dev      : Structure instance of bmm150_dev
- *
- *  dev->settings.z_rep     |  nZ(Z Repetitions)
- * -------------------------|-----------------------
- *   0x00                   |   1
- *   0x01                   |   2
- *   0x02                   |   3
- *    .                     |   .
- *    .                     |   .
- *   0xFF                   |   256
- *
- * @note number of Z Repetitions nZ  = 1+(dev->settings.z_rep)
- *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error.
- */
-static int8_t set_z_rep(const struct bmm150_dev *dev);
-
-/*!
- * @brief This internal API is used to set the output data rate of the sensor
- *
- * @param[in] dev       : Structure instance of bmm150_dev.
- *
- *  dev->settings.data_rate |   Data rate (ODR)
- * -------------------------|-----------------------
- *   0x00                   |  BMM150_DATA_RATE_10HZ
- *   0x01                   |  BMM150_DATA_RATE_02HZ
- *   0x02                   |  BMM150_DATA_RATE_06HZ
- *   0x03                   |  BMM150_DATA_RATE_08HZ
- *   0x04                   |  BMM150_DATA_RATE_15HZ
- *   0x05                   |  BMM150_DATA_RATE_20HZ
- *   0x06                   |  BMM150_DATA_RATE_25HZ
- *   0x07                   |  BMM150_DATA_RATE_30HZ
- *
- * @return Result of API execution status
- * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
- */
-static int8_t set_odr(const struct bmm150_dev *dev);
 
 /*!
  * @brief This internal API sets the preset mode ODR and repetition settings.
@@ -356,41 +295,7 @@ static float compensate_z(int16_t mag_data_z, uint16_t data_rhall, const struct 
 
 #else
 
-/*!
- * @brief This internal API is used to obtain the compensated
- * magnetometer X axis data in int16_t.
- *
- * @param[in] mag_data_x     : The value of raw X data
- * @param[in] data_rhall     : The value of raw RHALL data
- * @param[in] dev            : Structure instance of bmm150_dev.
- *
- * @return Result of compensated X data value in int16_t format
- */
-static int16_t compensate_x(int16_t mag_data_x, uint16_t data_rhall, const struct bmm150_dev *dev);
 
-/*!
- * @brief This internal API is used to obtain the compensated
- * magnetometer Y axis data in int16_t.
- *
- * @param[in] mag_data_y     : The value of raw Y data
- * @param[in] data_rhall     : The value of raw RHALL data
- * @param[in] dev            : Structure instance of bmm150_dev.
- *
- * @return Result of compensated Y data value in int16_t format
- */
-static int16_t compensate_y(int16_t mag_data_y, uint16_t data_rhall, const struct bmm150_dev *dev);
-
-/*!
- * @brief This internal API is used to obtain the compensated
- * magnetometer Z axis data in int16_t.
- *
- * @param[in] mag_data_z     : The value of raw Z data
- * @param[in] data_rhall     : The value of raw RHALL data
- * @param[in] dev            : Structure instance of bmm150_dev.
- *
- * @return Result of compensated Z data value in int16_t format
- */
-static int16_t compensate_z(int16_t mag_data_z, uint16_t data_rhall, const struct bmm150_dev *dev);
 
 #endif
 
@@ -443,7 +348,7 @@ static int8_t validate_normal_self_test(const struct bmm150_dev *dev);
  *      0               | BMM150_OK
  *      8               | BMM150_W_ADV_SELF_TEST_FAIL
  */
-static int8_t perform_adv_self_test(struct bmm150_dev *dev);
+static int8_t perform_adv_self_test(struct bmm150_dev *dev,int32_t *adv_self_test_rslt);
 
 /*!
  * @brief This internal API is used to set the desired power mode ,
@@ -491,7 +396,7 @@ static int8_t adv_self_test_measurement(uint8_t self_test_current, int16_t *data
  *      0               | BMM150_OK
  *      8               | BMM150_W_ADV_SELF_TEST_FAIL
  */
-static int8_t validate_adv_self_test(int16_t positive_data_z, int16_t negative_data_z);
+static int8_t validate_adv_self_test(int16_t positive_data_z, int16_t negative_data_z,int32_t *adv_self_test_rslt);
 
 /*!
  * @brief This internal API is used to set the self test current value in
@@ -819,12 +724,12 @@ int8_t bmm150_get_sensor_settings(struct bmm150_dev *dev)
  * 0x42 to 0x49 and update the dev structure with the
  * compensated mag data in micro-tesla.
  */
-int8_t bmm150_read_mag_data(struct bmm150_dev *dev)
+int8_t bmm150_read_mag_data(struct bmm150_dev *dev,struct bmm150_raw_mag_data *raw_mag_data)
 {
 	int8_t rslt;
 	int16_t msb_data;
 	uint8_t reg_data[BMM150_XYZR_DATA_LEN] = {0};
-	struct bmm150_raw_mag_data raw_mag_data;
+	/*struct bmm150_raw_mag_data raw_mag_data;*/
 
 	/* Check for null pointer in the device structure*/
 	rslt = null_ptr_check(dev);
@@ -839,30 +744,30 @@ int8_t bmm150_read_mag_data(struct bmm150_dev *dev)
 			/* Multiply by 32 to get the shift left by 5 value */
 			msb_data = ((int16_t)((int8_t)reg_data[1])) * 32;
 			/* Raw mag X axis data */
-			raw_mag_data.raw_datax = (int16_t)(msb_data | reg_data[0]);
+			raw_mag_data->raw_datax = (int16_t)(msb_data | reg_data[0]);
 			/* Mag Y axis data */
 			reg_data[2] = BMM150_GET_BITS(reg_data[2], BMM150_DATA_Y);
 			/* Shift the MSB data to left by 5 bits */
 			/* Multiply by 32 to get the shift left by 5 value */
 			msb_data = ((int16_t)((int8_t)reg_data[3])) * 32;
 			/* Raw mag Y axis data */
-			raw_mag_data.raw_datay = (int16_t)(msb_data | reg_data[2]);
+			raw_mag_data->raw_datay = (int16_t)(msb_data | reg_data[2]);
 			/* Mag Z axis data */
 			reg_data[4] = BMM150_GET_BITS(reg_data[4], BMM150_DATA_Z);
 			/* Shift the MSB data to left by 7 bits */
 			/* Multiply by 128 to get the shift left by 7 value */
 			msb_data = ((int16_t)((int8_t)reg_data[5])) * 128;
 			/* Raw mag Z axis data */
-			raw_mag_data.raw_dataz = (int16_t)(msb_data | reg_data[4]);
+			raw_mag_data->raw_dataz = (int16_t)(msb_data | reg_data[4]);
 			/* Mag R-HALL data */
 			reg_data[6] = BMM150_GET_BITS(reg_data[6], BMM150_DATA_RHALL);
-			raw_mag_data.raw_data_r = (uint16_t)(((uint16_t)reg_data[7] << 6) | reg_data[6]);
+			raw_mag_data->raw_data_r = (uint16_t)(((uint16_t)reg_data[7] << 6) | reg_data[6]);
 			/* Compensated Mag X data in int16_t format */
-			dev->data.x = compensate_x(raw_mag_data.raw_datax, raw_mag_data.raw_data_r, dev);
+			dev->data.x = compensate_x(raw_mag_data->raw_datax, raw_mag_data->raw_data_r, dev);
 			/* Compensated Mag Y data in int16_t format */
-			dev->data.y = compensate_y(raw_mag_data.raw_datay, raw_mag_data.raw_data_r, dev);
+			dev->data.y = compensate_y(raw_mag_data->raw_datay, raw_mag_data->raw_data_r, dev);
 			/* Compensated Mag Z data in int16_t format */
-			dev->data.z = compensate_z(raw_mag_data.raw_dataz, raw_mag_data.raw_data_r, dev);
+			dev->data.z = compensate_z(raw_mag_data->raw_dataz, raw_mag_data->raw_data_r, dev);
 		}
 	}
 
@@ -873,7 +778,7 @@ int8_t bmm150_read_mag_data(struct bmm150_dev *dev)
  * @brief This API is used to perform the complete self test
  * (both normal and advanced) for the BMM150 sensor
  */
-int8_t bmm150_perform_self_test(uint8_t self_test_mode, struct bmm150_dev *dev)
+int8_t bmm150_perform_self_test(uint8_t self_test_mode, struct bmm150_dev *dev,int32_t *adv_self_test_rslt)
 {
 	int8_t rslt;
 	int8_t self_test_rslt = 0;
@@ -895,7 +800,7 @@ int8_t bmm150_perform_self_test(uint8_t self_test_mode, struct bmm150_dev *dev)
 
 		case BMM150_ADVANCED_SELF_TEST:
 			/* Perform the advanced self test */
-			rslt = perform_adv_self_test(dev);
+			rslt = perform_adv_self_test(dev,adv_self_test_rslt);
 			/* Check to ensure bus error does not occur */
 			if (rslt >=  BMM150_OK) {
 				/* Store the status of self test result */
@@ -1147,7 +1052,7 @@ static int8_t suspend_to_sleep_mode(struct bmm150_dev *dev)
 /*!
  * @brief This internal API sets the xy repetition value in the 0x51 register.
  */
-static int8_t set_xy_rep(const struct bmm150_dev *dev)
+ int8_t set_xy_rep(const struct bmm150_dev *dev)
 {
 	int8_t rslt;
 	uint8_t rep_xy;
@@ -1167,7 +1072,7 @@ static int8_t set_xy_rep(const struct bmm150_dev *dev)
 /*!
  * @brief This internal API sets the z repetition value in the 0x52 register.
  */
-static int8_t set_z_rep(const struct bmm150_dev *dev)
+ int8_t set_z_rep(const struct bmm150_dev *dev)
 {
 	int8_t rslt;
 	uint8_t rep_z;
@@ -1187,7 +1092,7 @@ static int8_t set_z_rep(const struct bmm150_dev *dev)
 /*!
  * @brief This internal API is used to set the output data rate of the sensor.
 */
-static int8_t set_odr(const struct bmm150_dev *dev)
+ int8_t set_odr(const struct bmm150_dev *dev)
 {
 	int8_t rslt;
 	uint8_t reg_data;
@@ -1541,7 +1446,7 @@ static float compensate_z(int16_t mag_data_z, uint16_t data_rhall, const struct 
  * @brief This internal API is used to obtain the compensated
  * magnetometer X axis data(micro-tesla) in int16_t.
  */
-static int16_t compensate_x(int16_t mag_data_x, uint16_t data_rhall, const struct bmm150_dev *dev)
+int16_t compensate_x(int16_t mag_data_x, uint16_t data_rhall, const struct bmm150_dev *dev)
 {
 	int16_t retval;
 	uint16_t process_comp_x0 = 0;
@@ -1596,7 +1501,7 @@ static int16_t compensate_x(int16_t mag_data_x, uint16_t data_rhall, const struc
  * @brief This internal API is used to obtain the compensated
  * magnetometer Y axis data(micro-tesla) in int16_t.
  */
-static int16_t compensate_y(int16_t mag_data_y, uint16_t data_rhall, const struct bmm150_dev *dev)
+int16_t compensate_y(int16_t mag_data_y, uint16_t data_rhall, const struct bmm150_dev *dev)
 {
 	int16_t retval;
 	uint16_t process_comp_y0 = 0;
@@ -1649,7 +1554,7 @@ static int16_t compensate_y(int16_t mag_data_y, uint16_t data_rhall, const struc
  * @brief This internal API is used to obtain the compensated
  * magnetometer Z axis data(micro-tesla) in int16_t.
  */
-static int16_t compensate_z(int16_t mag_data_z, uint16_t data_rhall, const struct bmm150_dev *dev)
+int16_t compensate_z(int16_t mag_data_z, uint16_t data_rhall, const struct bmm150_dev *dev)
 {
 	int32_t retval;
 	int16_t process_comp_z0;
@@ -1789,7 +1694,7 @@ static int8_t validate_normal_self_test(const struct bmm150_dev *dev)
 /*!
  * @brief This internal API is used to perform advanced self test for Z axis
  */
-static int8_t perform_adv_self_test(struct bmm150_dev *dev)
+static int8_t perform_adv_self_test(struct bmm150_dev *dev,int32_t *adv_self_test_rslt)
 {
 	int8_t rslt;
 	uint8_t self_test_current;
@@ -1813,7 +1718,7 @@ static int8_t perform_adv_self_test(struct bmm150_dev *dev)
 				rslt = set_adv_self_test_current(self_test_current, dev);
 				if (rslt == BMM150_OK) {
 					/* Validate the advanced self test */
-					rslt = validate_adv_self_test(positive_data_z, negative_data_z);
+					rslt = validate_adv_self_test(positive_data_z, negative_data_z,adv_self_test_rslt);
 				}
 			}
 		}
@@ -1854,7 +1759,8 @@ static int8_t adv_self_test_settings(struct bmm150_dev *dev)
 static int8_t adv_self_test_measurement(uint8_t self_test_current, int16_t *data_z, struct bmm150_dev *dev)
 {
 	int8_t rslt;
-
+    struct bmm150_raw_mag_data raw2;   //*DEBUG 
+    
 	/* Set the advanced self test current as positive or
 	negative based on the value of parameter "self_test_current" */
 	rslt = set_adv_self_test_current(self_test_current, dev);
@@ -1866,7 +1772,7 @@ static int8_t adv_self_test_measurement(uint8_t self_test_current, int16_t *data
 		dev->delay_ms(BMM150_ADV_SELF_TEST_DELAY);
 		if (rslt == BMM150_OK) {
 			/* Read Mag data and store the value of Z axis data */
-			rslt = bmm150_read_mag_data(dev);
+			rslt = bmm150_read_mag_data(dev,&raw2);
 			if (rslt == BMM150_OK) {
 				/* Mag Z axis data is stored */
 				*data_z = dev->data.z;
@@ -1882,17 +1788,17 @@ static int8_t adv_self_test_measurement(uint8_t self_test_current, int16_t *data
  * Z axis mag data obtained by positive and negative self-test current
  * and validate whether the advanced self test is done successfully or not.
  */
-static int8_t validate_adv_self_test(int16_t positive_data_z, int16_t negative_data_z)
+static int8_t validate_adv_self_test(int16_t positive_data_z, int16_t negative_data_z,int32_t *adv_self_test_rslt)
 {
-	int32_t adv_self_test_rslt;
+	//int32_t adv_self_test_rslt;
 	int8_t rslt;
 
 	/* Advanced self test difference between the Z axis mag data
 	   obtained by the positive and negative self-test current */
-	adv_self_test_rslt = positive_data_z - negative_data_z;
+	*adv_self_test_rslt = positive_data_z - negative_data_z;
 	/* Advanced self test validation */
 	/*Value of adv_self_test_rslt should be in between 180-240 micro-tesla*/
-	if ((adv_self_test_rslt > 180) && (adv_self_test_rslt < 240)) {
+	if ((*adv_self_test_rslt > 180) && (*adv_self_test_rslt < 240)) {
 		/* Advanced self test success */
 		rslt = BMM150_OK;
 	} else {

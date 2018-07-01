@@ -247,7 +247,7 @@ int8_t bmm150_get_sensor_settings(struct bmm150_dev *dev);
  * @return Result of API execution status
  * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
  */
-int8_t bmm150_read_mag_data(struct bmm150_dev *dev);
+int8_t bmm150_read_mag_data(struct bmm150_dev *dev,struct bmm150_raw_mag_data *raw_mag_data);
 
 /*!
  * @brief This API is used to perform the complete self test
@@ -282,7 +282,7 @@ int8_t bmm150_read_mag_data(struct bmm150_dev *dev);
  *      8              | BMM150_W_ADV_SELF_TEST_FAIL
  *
  */
-int8_t bmm150_perform_self_test(uint8_t self_test_mode, struct bmm150_dev *dev);
+int8_t bmm150_perform_self_test(uint8_t self_test_mode, struct bmm150_dev *dev,int32_t *adv_self_test_rslt);
 
 /*!
  * @brief This API obtains the status flags of all interrupt
@@ -319,6 +319,103 @@ int8_t bmm150_get_interrupt_status(struct bmm150_dev *dev);
  * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
  */
 int8_t bmm150_aux_mag_data(uint8_t *aux_data, struct bmm150_dev *dev);
+/*!
+ * @brief This internal API sets the xy repetition value in the 0x51 register.
+ *
+ * @param[in,out] dev      : Structure instance of bmm150_dev
+ *
+ *  dev->settings.xy_rep    |  nXY(XY Repetitions)
+ * -------------------------|-----------------------
+ *   0x00                   |   1
+ *   0x01                   |   3
+ *   0x02                   |   5
+ *    .                     |   .
+ *    .                     |   .
+ *   0xFF                   |   511
+ *
+ * @note number of XY Repetitions nXY  = 1+2(dev->settings.xy_rep)
+ *
+ * @return Result of API execution status
+ * @retval zero -> Success / +ve value -> Warning / -ve value -> Error.
+ */
+ int8_t set_xy_rep(const struct bmm150_dev *dev);
+
+/*!
+ * @brief This internal API sets the z repetition value in the 0x52 register.
+ *
+ * @param[in,out] dev      : Structure instance of bmm150_dev
+ *
+ *  dev->settings.z_rep     |  nZ(Z Repetitions)
+ * -------------------------|-----------------------
+ *   0x00                   |   1
+ *   0x01                   |   2
+ *   0x02                   |   3
+ *    .                     |   .
+ *    .                     |   .
+ *   0xFF                   |   256
+ *
+ * @note number of Z Repetitions nZ  = 1+(dev->settings.z_rep)
+ *
+ * @return Result of API execution status
+ * @retval zero -> Success / +ve value -> Warning / -ve value -> Error.
+ */
+ int8_t set_z_rep(const struct bmm150_dev *dev);
+
+/*!
+ * @brief This internal API is used to set the output data rate of the sensor
+ *
+ * @param[in] dev       : Structure instance of bmm150_dev.
+ *
+ *  dev->settings.data_rate |   Data rate (ODR)
+ * -------------------------|-----------------------
+ *   0x00                   |  BMM150_DATA_RATE_10HZ
+ *   0x01                   |  BMM150_DATA_RATE_02HZ
+ *   0x02                   |  BMM150_DATA_RATE_06HZ
+ *   0x03                   |  BMM150_DATA_RATE_08HZ
+ *   0x04                   |  BMM150_DATA_RATE_15HZ
+ *   0x05                   |  BMM150_DATA_RATE_20HZ
+ *   0x06                   |  BMM150_DATA_RATE_25HZ
+ *   0x07                   |  BMM150_DATA_RATE_30HZ
+ *
+ * @return Result of API execution status
+ * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
+ */
+ int8_t set_odr(const struct bmm150_dev *dev);
+/*!
+ * @brief This internal API is used to obtain the compensated
+ * magnetometer X axis data in int16_t.
+ *
+ * @param[in] mag_data_x     : The value of raw X data
+ * @param[in] data_rhall     : The value of raw RHALL data
+ * @param[in] dev            : Structure instance of bmm150_dev.
+ *
+ * @return Result of compensated X data value in int16_t format
+ */
+int16_t compensate_x(int16_t mag_data_x, uint16_t data_rhall, const struct bmm150_dev *dev);
+
+/*!
+ * @brief This internal API is used to obtain the compensated
+ * magnetometer Y axis data in int16_t.
+ *
+ * @param[in] mag_data_y     : The value of raw Y data
+ * @param[in] data_rhall     : The value of raw RHALL data
+ * @param[in] dev            : Structure instance of bmm150_dev.
+ *
+ * @return Result of compensated Y data value in int16_t format
+ */
+int16_t compensate_y(int16_t mag_data_y, uint16_t data_rhall, const struct bmm150_dev *dev);
+
+/*!
+ * @brief This internal API is used to obtain the compensated
+ * magnetometer Z axis data in int16_t.
+ *
+ * @param[in] mag_data_z     : The value of raw Z data
+ * @param[in] data_rhall     : The value of raw RHALL data
+ * @param[in] dev            : Structure instance of bmm150_dev.
+ *
+ * @return Result of compensated Z data value in int16_t format
+ */
+int16_t compensate_z(int16_t mag_data_z, uint16_t data_rhall, const struct bmm150_dev *dev);
 
 #ifdef __cplusplus
 }
