@@ -677,6 +677,28 @@ int8_t bmi160_update_nvm(struct bmi160_dev const *dev);
 int8_t bmi160_get_int_status(enum bmi160_int_status_sel int_status_sel,
 				union bmi160_int_status *int_status, struct bmi160_dev const *dev);
 
+/*!
+ * @brief This API sets the accel power mode.
+ *
+ * @param[in] dev         : Structure instance of bmi160_dev.
+ *
+ * @return Result of API execution status
+ * @retval zero -> Success / -ve value -> Error.
+ */
+/*static*/ int8_t set_accel_pwr(struct bmi160_dev *dev);
+
+/*!
+ * @brief This API sets the gyro power mode.
+ *
+ * @param[in] dev         : Structure instance of bmi160_dev.
+ *
+ * @return Result of API execution status
+ * @retval zero -> Success / -ve value -> Error.
+ */
+/*static*/ int8_t set_gyro_pwr(struct bmi160_dev *dev);
+
+
+
 /*************************** C++ guard macro *****************************/
 #ifdef __cplusplus
 }

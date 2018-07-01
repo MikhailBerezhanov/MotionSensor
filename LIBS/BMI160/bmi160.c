@@ -348,15 +348,7 @@ static int8_t process_gyro_bw(uint8_t *data, const struct bmi160_dev *dev);
   */
 static int8_t process_gyro_range(uint8_t *data, const struct bmi160_dev *dev);
 
-/*!
- * @brief This API sets the accel power mode.
- *
- * @param[in] dev         : Structure instance of bmi160_dev.
- *
- * @return Result of API execution status
- * @retval zero -> Success / -ve value -> Error.
- */
-static int8_t set_accel_pwr(struct bmi160_dev *dev);
+
 
 /*!
  * @brief This API process the undersampling setting of Accel.
@@ -369,15 +361,7 @@ static int8_t set_accel_pwr(struct bmi160_dev *dev);
 static int8_t process_under_sampling(uint8_t *data,
 	const struct bmi160_dev *dev);
 
-/*!
- * @brief This API sets the gyro power mode.
- *
- * @param[in] dev         : Structure instance of bmi160_dev.
- *
- * @return Result of API execution status
- * @retval zero -> Success / -ve value -> Error.
- */
-static int8_t set_gyro_pwr(struct bmi160_dev *dev);
+
 
 /*!
  * @brief This API reads accel data along with sensor time if time is requested
@@ -3085,7 +3069,7 @@ static int8_t process_gyro_range(uint8_t *data, const struct bmi160_dev *dev)
 /*!
  * @brief This API sets the accel power.
  */
-static int8_t set_accel_pwr(struct bmi160_dev *dev)
+/*static*/ int8_t set_accel_pwr(struct bmi160_dev *dev)
 {
 	int8_t rslt = 0;
 	uint8_t data = 0;
@@ -3151,7 +3135,7 @@ static int8_t process_under_sampling(uint8_t *data, const struct bmi160_dev *dev
 /*!
  * @brief This API sets the gyro power mode.
  */
-static int8_t set_gyro_pwr(struct bmi160_dev *dev)
+/*static*/ int8_t set_gyro_pwr(struct bmi160_dev *dev)
 {
 	int8_t rslt = 0;
 
